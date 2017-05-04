@@ -6,7 +6,7 @@
             <asp:FileUpload runat="server" ID="flimport" />
         </div>
         <div class="col-sm-4">
-            <asp:Button runat="server" ID="btnUpload" CssClass="btn-primary" Text="Import" OnClick="btnUpload_OnClick" />
+            <asp:Button runat="server" ID="btnUpload" CssClass="btn-primary" Text="Import" OnClick="btnUpload_OnClick" style="display: none" />
         </div>
     </div>
    <br />
@@ -15,31 +15,36 @@
             <asp:GridView runat="server" CssClass="table table-striped table-bordered table-hover" ID="grdExcelData" AutoGenerateColumns="false"
                 OnRowDataBound="grdExcelData_RowDataBound"
                 OnRowCancelingEdit="grdExcelData_RowCancelingEdit"
+                OnRowUpdating="grdExcelData_RowUpdating"
                 OnRowEditing="grdExcelData_RowEditing">
                 <Columns >
-                    <asp:TemplateField>
+                    <asp:TemplateField HeaderStyle-CssClass="hidden-xs">
                         <ItemTemplate>
                             <asp:Button ID="btnEdit" runat="server" Text="Edit" CommandName="Edit" />
                         </ItemTemplate>
                         <EditItemTemplate>
 
                             <asp:Button ID="btnCancel" runat="server" Text="Cancel" CommandName="Cancel" />
+                              <asp:Button ID="btnUpdate" runat="server" Text="Validate" CommandName="Update" />
                         </EditItemTemplate>
+                        <HeaderStyle CssClass="headerCommandClass"></HeaderStyle>
                     </asp:TemplateField>
 
                     <asp:TemplateField HeaderText="Name">
                         <ItemTemplate>
                             <asp:Label ID="lbl_Name" runat="server" Text='<%#Eval("Name") %>'></asp:Label>
                         </ItemTemplate>
-
+                          <HeaderStyle CssClass="headerClass"></HeaderStyle>
                     </asp:TemplateField>
-                    <asp:TemplateField HeaderText="Grade">
+                    <asp:TemplateField HeaderText="Grade" HeaderStyle-CssClass="hidden-xs">
                         <ItemTemplate>
                             <asp:Label ID="lblGrade" runat="server" Text='<%#Eval("grade") %>'></asp:Label>
                         </ItemTemplate>
                         <EditItemTemplate>
                             <asp:DropDownList ID="ddlGrades" CssClass="selectpicker" runat="server"></asp:DropDownList>
                         </EditItemTemplate>
+                         
+
                     </asp:TemplateField>
 
                     <asp:TemplateField HeaderText="Rank">
@@ -51,6 +56,8 @@
                             <asp:DropDownList ID="ddlRanks" CssClass="selectpicker" runat="server"></asp:DropDownList>
 
                         </EditItemTemplate>
+                          <HeaderStyle CssClass="headerClass"></HeaderStyle>
+
                     </asp:TemplateField>
 
                 </Columns>
@@ -61,8 +68,15 @@
 
     <div class="row">
         <div class="col-sm-12 pull-left">
-            <asp:Button ID="btnValidateAndSave" Visible="False" runat="server" Text="ReValidate" CssClass="btn-primary" OnClick="btnValidateAndSave_Click" />
+            <asp:Button ID="btnValidateAndSave" Visible="False" runat="server" Text="Submit" CssClass="btn-primary" OnClick="btnValidateAndSave_Click" />
         </div>
     </div>
 
 </div>
+<script type="text/javascript">
+    function UploadFile(flimport) {
+        if (flimport.value !== '') {
+            document.getElementById("<%=btnUpload.ClientID %>").click();
+        }
+    }
+</script>

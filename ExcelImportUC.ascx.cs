@@ -18,6 +18,7 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
         grades = new List<string>() { "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Nineth", "Tenth" };
         ranks = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
         rowIndices = new List<int>();
+        flimport.Attributes["onchange"] = "UploadFile(this)";
     }
 
     protected void btnUpload_OnClick(object sender, EventArgs e)
@@ -171,7 +172,7 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
     {
         grdExcelData.EditIndex = e.NewEditIndex;
         rowIndices.Add(e.NewEditIndex);
-        ViewState["RowIndices"] = rowIndices;
+      //  ViewState["RowIndices"] = rowIndices;
         if (ViewState["data"] != null)
         {
             System.Data.DataTable dt = (ViewState["data"] as System.Data.DataTable);
@@ -183,7 +184,7 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
     {
         grdExcelData.EditIndex = -1;
         rowIndices.Remove(grdExcelData.EditIndex);
-        ViewState["RowIndices"] = rowIndices;
+        //ViewState["RowIndices"] = rowIndices;
         if (ViewState["data"] != null)
         {
             System.Data.DataTable dt = (ViewState["data"] as System.Data.DataTable);
@@ -191,34 +192,63 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
         }
     }
 
-    protected void btnValidateAndSave_Click(object sender, EventArgs e)
+    protected void grdExcelData_RowUpdating(object sender, System.Web.UI.WebControls.GridViewUpdateEventArgs e)
     {
         System.Data.DataTable dt = null;
-        if (ViewState["RowIndices"] != null)
+        GridViewRow row = grdExcelData.Rows[e.RowIndex];
+        string grade = ((DropDownList)row.Cells[2].FindControl("ddlGrades")).SelectedValue;
+        string rank = ((DropDownList)row.Cells[2].FindControl("ddlRanks")).SelectedValue;
+
+        if (ViewState["data"] != null)
         {
-           
-            rowIndices = ViewState["RowIndices"] as List<int>;
-            foreach (var index in rowIndices)
-            {
-                GridViewRow row = grdExcelData.Rows[index];
-                string grade = ((DropDownList)row.Cells[2].FindControl("ddlGrades")).SelectedValue;
-                string rank = ((DropDownList)row.Cells[2].FindControl("ddlRanks")).SelectedValue;
+            dt = (ViewState["data"] as System.Data.DataTable);
+            dt.Rows[e.RowIndex][1] = grade;
+            dt.Rows[e.RowIndex][2] = rank;
 
-                if (ViewState["data"] != null)
-                {
-                    dt = (ViewState["data"] as System.Data.DataTable);
-                    dt.Rows[index][1] = grade;
-                    dt.Rows[index][2] = rank;
 
-                    
-                }
-            }
-            if (dt!=null)
-            {
-                ViewState["data"] = dt;
-                grdExcelData.EditIndex = -1;
-                BindDatatoGrid(dt);
-            }
         }
+        if (dt != null)
+        {
+            ViewState["data"] = dt;
+            grdExcelData.EditIndex = -1;
+            BindDatatoGrid(dt);
+        }
+    }
+
+    protected void btnValidateAndSave_Click(object sender, EventArgs e)
+    {
+        if (ViewState["data"] != null)
+        {
+            System.Data.DataTable  dt = (ViewState["data"] as System.Data.DataTable);
+            BindDatatoGrid(dt);
+        }
+        //            dt = (ViewState["data"] as System.Data.DataTable);
+        //System.Data.DataTable dt = null;
+        //if (ViewState["RowIndices"] != null)
+        //{
+
+            //    rowIndices = ViewState["RowIndices"] as List<int>;
+            //    foreach (var index in rowIndices)
+            //    {
+            //        GridViewRow row = grdExcelData.Rows[index];
+            //        string grade = ((DropDownList)row.Cells[2].FindControl("ddlGrades")).SelectedValue;
+            //        string rank = ((DropDownList)row.Cells[2].FindControl("ddlRanks")).SelectedValue;
+
+            //        if (ViewState["data"] != null)
+            //        {
+            //            dt = (ViewState["data"] as System.Data.DataTable);
+            //            dt.Rows[index][1] = grade;
+            //            dt.Rows[index][2] = rank;
+
+
+            //        }
+            //    }
+            //    if (dt!=null)
+            //    {
+            //        ViewState["data"] = dt;
+            //        grdExcelData.EditIndex = -1;
+            //        BindDatatoGrid(dt);
+            //    }
+            //}
     }
 }
