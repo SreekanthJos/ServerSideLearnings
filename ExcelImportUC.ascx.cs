@@ -1,4 +1,5 @@
-﻿using Microsoft.Office.Interop.Excel;
+﻿using AjaxControlToolkit;
+using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -21,6 +22,13 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
         flimport.Attributes["onchange"] = "UploadFile(this)";
     }
 
+    protected void RefreshGridView(object sender, EventArgs e)
+    {
+        System.Data.DataTable dt = (ViewState["data"] as System.Data.DataTable);
+        BindDatatoGrid(dt);
+    }
+
+    
     protected void btnUpload_OnClick(object sender, EventArgs e)
     {
         if (flimport.HasFile)
@@ -34,13 +42,59 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
         }
     }
 
+   
+
+    protected void fileUploadComplete(object sender, AsyncFileUploadEventArgs e)
+    {
+        string folderPath = ConfigurationManager.AppSettings["folderPath"];
+        Random rndm = new Random();
+        string filePath = Server.MapPath(folderPath) + "\\" + rndm.Next() + e.FileName.ToString();
+        fileUpload1.SaveAs(filePath);
+
+        var buf = new byte[fileUpload1.FileContent.Length];
+        fileUpload1.FileContent.Read(buf, 0, (int)fileUpload1.FileContent.Length);
+        System.Data.DataTable dt=new System.Data.DataTable();
+        dt.Columns.Add("Name");
+        dt.Columns.Add("Grade");
+        dt.Columns.Add("Rank");
+      
+
+        object[] aa = buf.Cast<object>().ToArray();
+       
+        dt.LoadDataRow(aa,true);
+
+        ImportDataToGrid(filePath);
+    }
+
+    private DataSet DeserailizeByteArrayToDataSet(byte[] byteArrayData)
+    {
+        DataSet tempDataSet = new DataSet();
+        System.Data.DataTable dt;
+        // Deserializing into datatable    
+        using (MemoryStream stream = new MemoryStream(byteArrayData))
+        {
+            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter bformatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            dt = (System.Data.DataTable)bformatter.Deserialize(stream);
+            if (dt != null)
+            {
+                foreach (DataRow row in dt.Rows)
+                {
+                 
+                }
+            }
+        }
+        // Adding DataTable into DataSet    
+        tempDataSet.Tables.Add(dt);
+        return tempDataSet;
+    }
     private void ImportDataToGrid(string filePath)
     {
-        Application excelApp = null;
+        //Application excelApp = null;
+        ApplicationClass excelApp=new ApplicationClass();
         Workbook workbook = null;
         try
         {
-            excelApp = new Application();
+            //excelApp = new Application();
             workbook = excelApp.Workbooks.Open(filePath);
             var worksheet = workbook.Worksheets[1] as
                Microsoft.Office.Interop.Excel.Worksheet;
@@ -49,8 +103,8 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
             worksheet = null; // now No need of this so should expire.
 
             //Reading Excel file.
-            object[,] valueArray = (object[,])excelRange.get_Value(Microsoft.Office.Interop.Excel.XlRangeValueDataType.xlRangeValueDefault);
-
+            // object[,] valueArray = (object[,])excelRange.get_Value(Microsoft.Office.Interop.Excel.XlRangeValueDataType.xlRangeValueDefault);
+            object[,] valueArray = (object[,]) excelRange.Value2;
             excelRange = null; // you don't need to do any more Interop. Now No need of this so should expire.
 
             System.Data.DataTable dt = ProcessObjects(valueArray);
@@ -88,6 +142,8 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
 
     private void BindDatatoGrid(System.Data.DataTable dt)
     {
+        string ss=FaslReason.Value;
+
         grdExcelData.DataSource = dt;
         grdExcelData.DataBind();
     }
@@ -137,22 +193,9 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
         {
             DataRowView dr = e.Row.DataItem as DataRowView;
 
-            if ((e.Row.RowState & DataControlRowState.Edit) > 0)
+            if ((e.Row.RowState & DataControlRowState.Edit) <= 0)
             {
-
-                DropDownList ddlGrades = (DropDownList)e.Row.FindControl("ddlGrades");
-                ddlGrades.DataSource = grades;
-                ddlGrades.DataBind();
-                ddlGrades.SelectedValue = dr["grade"].ToString();
-
-                DropDownList ddlRanks = (DropDownList)e.Row.FindControl("ddlRanks");
-                ddlRanks.DataSource = ranks;
-                ddlRanks.DataBind();
-                ddlRanks.SelectedValue = dr["rank"].ToString();
-            }
-            else
-            {
-                System.Web.UI.WebControls.Label lbl = (System.Web.UI.WebControls.Label)e.Row.FindControl("lblgrade");
+                System.Web.UI.WebControls.Label lbl = (System.Web.UI.WebControls.Label) e.Row.FindControl("lblgrade");
 
                 bool isExist = grades.Contains(lbl.Text);
 
@@ -162,9 +205,18 @@ public partial class ExcelImportUC : System.Web.UI.UserControl
                     btnValidateAndSave.Visible = true;
                 }
             }
+            else
+            {
+                DropDownList ddlGrades = (DropDownList) e.Row.FindControl("ddlGrades");
+                ddlGrades.DataSource = grades;
+                ddlGrades.DataBind();
+                ddlGrades.SelectedValue = dr["grade"].ToString();
 
-
-
+                DropDownList ddlRanks = (DropDownList) e.Row.FindControl("ddlRanks");
+                ddlRanks.DataSource = ranks;
+                ddlRanks.DataBind();
+                ddlRanks.SelectedValue = dr["rank"].ToString();
+            }
         }
     }
 
